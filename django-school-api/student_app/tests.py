@@ -2,6 +2,7 @@ from django.test import TestCase
 from .models import Student
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from .serializers import StudentAllSerializer, StudentSerializer
 
 
 # Create your tests here.
@@ -43,7 +44,7 @@ class Test_student(TestCase):
             self.fail()
         except ValidationError as e:
             # print(e.message_dict)
-            self.assertTrue(
+            self.assert_(
                 "student_email" in e.message_dict and "personal_email" in e.message_dict
             )
 
@@ -61,7 +62,7 @@ class Test_student(TestCase):
             self.fail()
         except Exception as e:
             # print(e)
-            self.assertTrue(
+            self.assert_(
                 "Field 'locker_number' expected a number but got 'None'" in str(e)
             )
 
@@ -79,7 +80,7 @@ class Test_student(TestCase):
             self.fail()
         except IntegrityError as e:
             # print(e)
-            self.assertTrue('null value in column "locker_combination" ' in str(e))
+            self.assert_('null value in column "locker_combination" ' in str(e))
 
     def test_005_student_with_improper_name_field(self):
         try:
@@ -95,7 +96,7 @@ class Test_student(TestCase):
             self.fail()
         except Exception as e:
             # print(e)
-            self.assertTrue('null value in column "name" ' in str(e))
+            self.assert_('null value in column "name" ' in str(e))
 
     def test_006_student_with_proper_fields(self):
         new_student = Student.objects.create(
@@ -133,7 +134,7 @@ class Test_student(TestCase):
             self.fail()
         except IntegrityError as e:
             # print("\n\n\n", e, "\n\n\n")
-            self.assertTrue(
+            self.assert_(
                 'duplicate key value violates unique constraint "student_app_student_student_email'
                 in str(e)
             )
@@ -160,7 +161,7 @@ class Test_student(TestCase):
             self.fail()
         except IntegrityError as e:
             # print("\n\n\n", e, "\n\n\n")
-            self.assertTrue(
+            self.assert_(
                 'duplicate key value violates unique constraint "student_app_student_personal_email'
                 in str(e)
             )
@@ -187,7 +188,7 @@ class Test_student(TestCase):
             self.fail()
         except IntegrityError as e:
             # print(e)
-            self.assertTrue("student_app_student_locker_number" in str(e))
+            self.assert_("student_app_student_locker_number" in str(e))
 
     def test_010_student_utilizing_default_values(self):
         new_student = Student.objects.create(
@@ -211,7 +212,7 @@ class Test_student(TestCase):
             self.fail()
         except ValidationError as e:
             # print(e.message_dict)
-            self.assertTrue(
+            self.assert_(
                 'Name must be in the format "First Middle Initial. Last"'
                 in e.message_dict["name"]
             )
@@ -227,7 +228,7 @@ class Test_student(TestCase):
             self.fail()
         except ValidationError as e:
             # print(e.message_dict)
-            self.assertTrue(
+            self.assert_(
                 'Invalid school email format. Please use an email ending with "@school.com".'
                 in e.message_dict["student_email"]
             )
@@ -244,7 +245,7 @@ class Test_student(TestCase):
             self.fail()
         except ValidationError as e:
             # print(e.message_dict)
-            self.assertTrue(
+            self.assert_(
                 'Combination must be in the format "12-12-12"'
                 in e.message_dict["locker_combination"]
             )
@@ -261,7 +262,7 @@ class Test_student(TestCase):
             self.fail()
         except ValidationError as e:
             # print(e.message_dict)
-            self.assertTrue(
+            self.assert_(
                 "Ensure this value is greater than or equal to 1."
                 in e.message_dict["locker_number"]
             )
@@ -278,7 +279,74 @@ class Test_student(TestCase):
             self.fail()
         except ValidationError as e:
             # print(e.message_dict)
-            self.assertTrue(
+            self.assert_(
                 "Ensure this value is less than or equal to 200."
                 in e.message_dict["locker_number"]
             )
+
+    ## PART IV
+
+    def test_016_student_serializer_with_proper_data(self):
+        data = {
+            "name": "John W. Watson",
+            "student_email": "thisIsAnEmail@school.com",
+            "locker_number": 13,
+        }
+
+        serializer = StudentSerializer(data=data)
+        self.assertTrue(serializer.is_valid())
+
+    def test_017_student_serializer_with_proper_data(self):
+        student = Student(
+            **{
+                "name": "John W. Watson",
+                "student_email": "thisIsAnEmail@school.com",
+                "locker_number": 13,
+            }
+        )
+
+        serializer = StudentSerializer(student)
+        self.assertEquals(
+            serializer.data,
+            {
+                "name": "John W. Watson",
+                "student_email": "thisIsAnEmail@school.com",
+                "locker_number": 13,
+            }
+        )
+
+    def test_018_student_serializer_all_with_proper_data(self):
+        data = {
+            "name": "John W. Watson",
+            "student_email": "thisIsAnEmail@school.com",
+            "personal_email": "thisIsAnEmail@gmail.com",
+            "locker_number": 13,
+            "locker_combination": "12-33-44",
+            "good_student": True,
+        }
+        serializer = StudentAllSerializer(data=data)
+        self.assertTrue(serializer.is_valid())
+
+    def test_019_student_serializer_all_with_proper_reponse(self):
+        stud = Student(
+            **{
+                "name": "John W. Watson",
+                "student_email": "thisIsAnEmail@school.com",
+                "personal_email": "thisIsAnEmail@gmail.com",
+                "locker_number": 13,
+                "locker_combination": "12-33-44",
+                "good_student": True,
+            }
+        )
+        serializer = StudentAllSerializer(stud)
+        self.assertEquals(
+            serializer.data,
+            {
+                "name": "John W. Watson",
+                "student_email": "thisIsAnEmail@school.com",
+                "personal_email": "thisIsAnEmail@gmail.com",
+                "locker_number": 13,
+                "locker_combination": "12-33-44",
+                "good_student": True,
+            }
+        )
