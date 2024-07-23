@@ -9,7 +9,6 @@ from django.db import IntegrityError
 
 ## PART I
 class Test_student(TestCase):
-
     def test_001_student_with_improper_good_student_field(self):
         try:
             new_student = Student.objects.create(
@@ -44,7 +43,7 @@ class Test_student(TestCase):
             self.fail()
         except ValidationError as e:
             # print(e.message_dict)
-            self.assert_(
+            self.assertTrue(
                 "student_email" in e.message_dict and "personal_email" in e.message_dict
             )
 
@@ -62,7 +61,7 @@ class Test_student(TestCase):
             self.fail()
         except Exception as e:
             # print(e)
-            self.assert_(
+            self.assertTrue(
                 "Field 'locker_number' expected a number but got 'None'" in str(e)
             )
 
@@ -80,7 +79,7 @@ class Test_student(TestCase):
             self.fail()
         except IntegrityError as e:
             # print(e)
-            self.assert_('null value in column "locker_combination" ' in str(e))
+            self.assertTrue('null value in column "locker_combination" ' in str(e))
 
     def test_005_student_with_improper_name_field(self):
         try:
@@ -96,7 +95,7 @@ class Test_student(TestCase):
             self.fail()
         except Exception as e:
             # print(e)
-            self.assert_('null value in column "name" ' in str(e))
+            self.assertTrue('null value in column "name" ' in str(e))
 
     def test_006_student_with_proper_fields(self):
         new_student = Student.objects.create(
@@ -134,7 +133,7 @@ class Test_student(TestCase):
             self.fail()
         except IntegrityError as e:
             # print("\n\n\n", e, "\n\n\n")
-            self.assert_(
+            self.assertTrue(
                 'duplicate key value violates unique constraint "student_app_student_student_email'
                 in str(e)
             )
@@ -161,7 +160,7 @@ class Test_student(TestCase):
             self.fail()
         except IntegrityError as e:
             # print("\n\n\n", e, "\n\n\n")
-            self.assert_(
+            self.assertTrue(
                 'duplicate key value violates unique constraint "student_app_student_personal_email'
                 in str(e)
             )
@@ -188,7 +187,7 @@ class Test_student(TestCase):
             self.fail()
         except IntegrityError as e:
             # print(e)
-            self.assert_("student_app_student_locker_number" in str(e))
+            self.assertTrue("student_app_student_locker_number" in str(e))
 
     def test_010_student_utilizing_default_values(self):
         new_student = Student.objects.create(
@@ -198,3 +197,88 @@ class Test_student(TestCase):
         )
         new_student.full_clean()
         self.assertIsNotNone(new_student)
+
+    ## PART III
+
+    def test_011_student_with_improper_name_format(self):
+        try:
+            new_student = Student.objects.create(
+                name="Maverick Macconnel",
+                student_email="mav@school.com",
+                personal_email="mav@gmail.com",
+            )
+            new_student.full_clean()
+            self.fail()
+        except ValidationError as e:
+            # print(e.message_dict)
+            self.assertTrue(
+                'Name must be in the format "First Middle Initial. Last"'
+                in e.message_dict["name"]
+            )
+
+    def test_012_student_with_improper_student_email(self):
+        try:
+            new_student = Student.objects.create(
+                name="Maverick H. Macconnel",
+                student_email="mav@school.org",
+                personal_email="mav@gmail.com",
+            )
+            new_student.full_clean()
+            self.fail()
+        except ValidationError as e:
+            # print(e.message_dict)
+            self.assertTrue(
+                'Invalid school email format. Please use an email ending with "@school.com".'
+                in e.message_dict["student_email"]
+            )
+
+    def test_013_student_with_improper_locker_combination(self):
+        try:
+            new_student = Student.objects.create(
+                name="Maverick H. Macconnel",
+                student_email="mav@school.com",
+                personal_email="mav@gmail.com",
+                locker_combination="zz-234-p1",
+            )
+            new_student.full_clean()
+            self.fail()
+        except ValidationError as e:
+            # print(e.message_dict)
+            self.assertTrue(
+                'Combination must be in the format "12-12-12"'
+                in e.message_dict["locker_combination"]
+            )
+
+    def test_014_student_with_low_locker_number(self):
+        try:
+            new_student = Student.objects.create(
+                name="Maverick H. Macconnel",
+                student_email="mav@school.com",
+                personal_email="mav@gmail.com",
+                locker_number=0,
+            )
+            new_student.full_clean()
+            self.fail()
+        except ValidationError as e:
+            # print(e.message_dict)
+            self.assertTrue(
+                "Ensure this value is greater than or equal to 1."
+                in e.message_dict["locker_number"]
+            )
+
+    def test_015_student_with_high_locker_number(self):
+        try:
+            new_student = Student.objects.create(
+                name="Maverick H. Macconnel",
+                student_email="mav@school.com",
+                personal_email="mav@gmail.com",
+                locker_number=350,
+            )
+            new_student.full_clean()
+            self.fail()
+        except ValidationError as e:
+            # print(e.message_dict)
+            self.assertTrue(
+                "Ensure this value is less than or equal to 200."
+                in e.message_dict["locker_number"]
+            )
