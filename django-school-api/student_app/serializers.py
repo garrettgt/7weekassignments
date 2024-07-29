@@ -7,10 +7,10 @@ class StudentSerializer(serializers.ModelSerializer):
         fields = ['name', 'student_email', 'locker_number']
     
 
-# all_students = Student.objects.all()
-# serializer = StudentSerializer(all_students, many=True)
+all_students = Student.objects.all()
+serializer = StudentSerializer(all_students, many=True)
 
 class StudentAllSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
-        fields = ['name', 'student_email', 'personal_email' , 'locker_number', 'locker_combination', 'good_student']
+        exclude = ['id']

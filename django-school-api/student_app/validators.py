@@ -39,3 +39,12 @@ def validate_max_value(locker):
 
     if locker > 200:
         raise ValidationError(error_message, params={'locker': locker})
+    
+def validate_subjects(subjects):
+    error_message1 = "This students class schedule is empty!"
+    error_message2 = "This students class schedule is full!"
+
+    if subjects <= 0:
+        raise ValidationError(error_message1, params={'subjects': subjects})
+    if subjects >= 8:
+        raise ValidationError(error_message2, params={'subjects': subjects})
